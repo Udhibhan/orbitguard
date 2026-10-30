@@ -1,0 +1,84 @@
+{
+  "n_events": 9463,
+  "by_tier": {
+    "Safe": 6999,
+    "Elevated": 1841,
+    "Critical": 623
+  },
+  "under_1km": 621,
+  "critical_drivers": {
+    "miss_rule_only": 615,
+    "pc_rule_only": 2,
+    "both": 6
+  },
+  "by_object_type": [
+    {
+      "c_object_type": "DEBRIS",
+      "events": 5446,
+      "critical": 424,
+      "under_1km": 423,
+      "median_miss_km": 11.0995,
+      "critical_rate": 0.07785530664708043
+    },
+    {
+      "c_object_type": "UNKNOWN",
+      "events": 2763,
+      "critical": 126,
+      "under_1km": 125,
+      "median_miss_km": 13.552,
+      "critical_rate": 0.04560260586319218
+    },
+    {
+      "c_object_type": "PAYLOAD",
+      "events": 1126,
+      "critical": 53,
+      "under_1km": 53,
+      "median_miss_km": 27.409,
+      "critical_rate": 0.04706927175843695
+    },
+    {
+      "c_object_type": "ROCKET BODY",
+      "events": 110,
+      "critical": 18,
+      "under_1km": 18,
+      "median_miss_km": 10.852,
+      "critical_rate": 0.16363636363636364
+    },
+    {
+      "c_object_type": "TBA",
+      "events": 18,
+      "critical": 2,
+      "under_1km": 2,
+      "median_miss_km": 24.6715,
+      "critical_rate": 0.1111111111111111
+    }
+  ],
+  "by_f10_tercile": [
+    {
+      "f10_range": "(65.999, 70.0]",
+      "events": 3095,
+      "critical_rate": 0.07689822294022618,
+      "high_risk_rate": 0.008723747980613893
+    },
+    {
+      "f10_range": "(70.0, 79.0]",
+      "events": 3121,
+      "critical_rate": 0.06055751361743031,
+      "high_risk_rate": 0.012495994873438
+    },
+    {
+      "f10_range": "(79.0, 246.0]",
+      "events": 2909,
+      "critical_rate": 0.058095565486421454,
+      "high_risk_rate": 0.011687865245788931
+    }
+  ],
+  "spearman_risk_f10": 0.025508696505943645,
+  "spearman_risk_ap": -0.013878956942711528,
+  "insights": [
+    "9,463 events had a CDM within 24 h of TCA: 623 Critical, 1,841 Elevated, 6,999 Safe; 621 with miss distance under 1 km.",
+    "98.7% of Critical flags are driven by the miss-distance rule alone, 0.3% by Pc alone and 1.0% by both. The 1 km rule dominates the alerting load.",
+    "'ROCKET BODY' secondaries have the highest Critical rate (16.4% of 110 events) versus 6.6% overall.",
+    "Space weather shows a weak link with risk (Spearman vs F10 +0.03, vs AP -0.01); Critical rate is 6.8% when AP >= 27 vs 6.5% otherwise (426 active-geomagnetic events). Treat this as descriptive, not causal."
+  ]
+}

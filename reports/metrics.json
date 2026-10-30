@@ -1,0 +1,224 @@
+{
+  "split": {
+    "n_train": 6634,
+    "n_val": 1659,
+    "val_tier_counts": {
+      "Safe": 1228,
+      "Elevated": 321,
+      "Critical": 110
+    },
+    "val_high_risk": 13
+  },
+  "build_report": {
+    "train_data": {
+      "events_total": 13154,
+      "excluded_no_cdm_before_cutoff": 1212,
+      "excluded_final_cdm_not_within_1_day": 3649,
+      "events_kept": 8293
+    },
+    "test_data": {
+      "events_total": 2167,
+      "excluded_no_cdm_before_cutoff": 0,
+      "events_kept": 2167
+    },
+    "n_train": 6634,
+    "n_val": 1659,
+    "n_test": 2167
+  },
+  "models": {
+    "Baseline A: constant (-5)": {
+      "esa": {
+        "L": 9.310686266563033,
+        "mse_hr": 0.3537081281862053,
+        "f2": 0.037989479836353014,
+        "precision_hr": 0.007836045810729355,
+        "recall_hr": 1.0,
+        "tp": 13,
+        "fp": 1646,
+        "fn": 0
+      },
+      "tiers": {
+        "confusion": [
+          [
+            0,
+            1224,
+            4
+          ],
+          [
+            0,
+            302,
+            19
+          ],
+          [
+            0,
+            18,
+            92
+          ]
+        ],
+        "labels": [
+          "Safe",
+          "Elevated",
+          "Critical"
+        ],
+        "accuracy": 0.23749246534056662,
+        "critical_recall": 0.8363636363636363,
+        "critical_precision": 0.8,
+        "critical_f2": 0.8288288288288288
+      },
+      "critical_recall_with_review": 0.8363636363636364,
+      "critical_silent_misses": 18,
+      "workload": {
+        "theta": Infinity,
+        "n_events": 1659,
+        "n_cleared": 0,
+        "pct_cleared": 0.0,
+        "critical_recall": 1.0,
+        "critical_auto_cleared": 0,
+        "elevated_auto_cleared": 0,
+        "n_analyst_review": 0
+      },
+      "workload_train": {
+        "theta": Infinity,
+        "n_events": 6634,
+        "n_cleared": 0,
+        "pct_cleared": 0.0,
+        "critical_recall": 1.0,
+        "critical_auto_cleared": 0,
+        "elevated_auto_cleared": 0,
+        "n_analyst_review": 0
+      },
+      "bootstrap": {
+        "L_ci95": [
+          4.366526541871639,
+          22.815288824655685
+        ],
+        "pct_cleared_ci95": [
+          0.0,
+          0.0
+        ],
+        "critical_recall_ci95": [
+          1.0,
+          1.0
+        ]
+      }
+    },
+    "Baseline B: Latest Risk (LRP)": {
+      "esa": {
+        "L": 0.5599770413633643,
+        "mse_hr": 0.2290815169213763,
+        "f2": 0.40909090909090906,
+        "precision_hr": 0.15517241379310345,
+        "recall_hr": 0.6923076923076923,
+        "tp": 9,
+        "fp": 49,
+        "fn": 4
+      },
+      "tiers": {
+        "confusion": [
+          [
+            1177,
+            47,
+            4
+          ],
+          [
+            37,
+            263,
+            21
+          ],
+          [
+            0,
+            18,
+            92
+          ]
+        ],
+        "labels": [
+          "Safe",
+          "Elevated",
+          "Critical"
+        ],
+        "accuracy": 0.9234478601567209,
+        "critical_recall": 0.8363636363636363,
+        "critical_precision": 0.7863247863247863,
+        "critical_f2": 0.8258527827648114
+      },
+      "critical_recall_with_review": 0.9454545454545454,
+      "critical_silent_misses": 6,
+      "workload": {
+        "theta": 0.9545454545454546,
+        "n_events": 1659,
+        "n_cleared": 751,
+        "pct_cleared": 0.4526823387582881,
+        "critical_recall": 1.0,
+        "critical_auto_cleared": 0,
+        "elevated_auto_cleared": 8,
+        "n_analyst_review": 555
+      },
+      "workload_train": {
+        "theta": 0.9545454545454546,
+        "n_events": 6634,
+        "n_cleared": 3004,
+        "pct_cleared": 0.45281881217968045,
+        "critical_recall": 0.9909297052154195,
+        "critical_auto_cleared": 4,
+        "elevated_auto_cleared": 28,
+        "n_analyst_review": 2217
+      },
+      "bootstrap": {
+        "L_ci95": [
+          0.01288036178857899,
+          1.7681149902004822
+        ],
+        "pct_cleared_ci95": [
+          0.4273658830620856,
+          0.4767932489451477
+        ],
+        "critical_recall_ci95": [
+          1.0,
+          1.0
+        ]
+      }
+    }
+  },
+  "current_tier_persistence": {
+    "confusion": [
+      [
+        1177,
+        47,
+        4
+      ],
+      [
+        37,
+        263,
+        21
+      ],
+      [
+        0,
+        18,
+        92
+      ]
+    ],
+    "labels": [
+      "Safe",
+      "Elevated",
+      "Critical"
+    ],
+    "accuracy": 0.9234478601567209,
+    "critical_recall": 0.8363636363636363,
+    "critical_precision": 0.7863247863247863,
+    "critical_f2": 0.8258527827648114
+  },
+  "volatility": {
+    "rate_val": 0.3345388788426763,
+    "late_surprises": 22,
+    "late_surprises_flagged": 14
+  },
+  "config": {
+    "cutoff_days": 2.0,
+    "final_within_days": 1.0,
+    "target_critical_recall": 0.99,
+    "late_jump_orders": 2.0,
+    "vol_std": 1.0,
+    "vol_rise": 1.0,
+    "vol_miss_drop": 0.5
+  }
+}

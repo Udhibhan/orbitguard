@@ -1,0 +1,39 @@
+{
+  "hbr_m": 10.0,
+  "n_cdms": 162634,
+  "n_sigma_unavailable": 5140,
+  "n_dataset_floor_-30": 67229,
+  "spearman_non_floor": 0.21885539102665694,
+  "pearson_non_floor": 0.19140390871182905,
+  "median_log_diff_non_floor": -18.24229290498293,
+  "mae_log_non_floor": 18.258876629372132,
+  "pc_band_agreement": 0.9267527651847054,
+  "tier_agreement": 0.9721576694985206,
+  "tier_agreement_note": "inflated by the miss-distance rules, which are identical on both sides",
+  "dataset_high_risk_cdms": 10183,
+  "dataset_high_risk_missed_by_approx": 8973,
+  "approx_floor_when_dataset_not_floor": 0.8516922395169778,
+  "median_diff_by_sigma_quintile": {
+    "(4.984, 43.871]": -16.540454613671415,
+    "(43.871, 84.036]": -17.33665982345442,
+    "(84.036, 160.805]": -18.93881982502621,
+    "(160.805, 351.149]": -19.985740741050073,
+    "(351.149, 984363.398]": -18.291368850451587
+  },
+  "median_diff_by_miss_bin": {
+    "(0.0, 1000.0]": -5.411956237930397,
+    "(1000.0, 5000.0]": -17.427161402925968,
+    "(5000.0, 10000.0]": -19.372727940885596,
+    "(10000.0, 20000.0]": -19.34281713550098,
+    "(20000.0, 1000000.0]": -18.84744922304451
+  },
+  "pc_max_vs_max_risk_estimate": {
+    "spearman": 0.5275286714005847,
+    "median_implied_hbr_m": 11.733588742393097,
+    "iqr_implied_hbr_m": [
+      5.649717083214312,
+      25.14051568184765
+    ]
+  },
+  "c_over_t_sigma_ratio_median": 21.591972884675666
+}
