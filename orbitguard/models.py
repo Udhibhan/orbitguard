@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .data import ROOT, TARGET_COLUMNS
+from .data import FEATURE_COLUMNS, ROOT, TARGET_COLUMNS
 from .tiers import CRITICAL, ELEVATED, SAFE, TIERS, classify_array
 
 OUTPUT_COLUMNS = ["event_id", "pred_risk", "p_safe", "p_elevated", "p_critical", "abstain", "model_name"]
@@ -33,6 +33,10 @@ class Model:
 
     def predict(self, events: pd.DataFrame) -> pd.DataFrame:
         raise NotImplementedError
+
+    def forecast_tiers(self, pred: pd.DataFrame, events: pd.DataFrame) -> np.ndarray:
+        """Default: the handbook rules applied to (predicted final log10 Pc, latest miss distance)."""
+        return classify_array(pred["pred_risk"].to_numpy(), events["latest_miss_distance"].to_numpy())
 
 
 def _frame(events, pred_risk, probs, abstain, name) -> pd.DataFrame:
@@ -112,6 +116,85 @@ class LatestRiskModel(Model):
         return _frame(events, pred, self.probs(events), events["volatile"].to_numpy(bool), self.name)
 
 
+OBJ_TYPES = ["DEBRIS", "PAYLOAD", "ROCKET BODY", "UNKNOWN", "TBA"]
+
+
+def event_matrix(events: pd.DataFrame) -> pd.DataFrame:
+    """Numeric event features for the GBM (pre-cutoff only, see data.FEATURE_COLUMNS)."""
+    x = events[FEATURE_COLUMNS].copy()
+    x["latest_c_object_type"] = pd.Categorical(x["latest_c_object_type"], categories=OBJ_TYPES).codes
+    x["current_tier"] = pd.Categorical(x["current_tier"], categories=TIERS).codes
+    x["volatile"] = x["volatile"].astype(int)
+    x["latest_risk_clip"] = events["latest_risk"].clip(lower=-10)
+    x["log_miss"] = np.log10(events["latest_miss_distance"].clip(lower=1))
+    return x
+
+
+class GBMTierForecaster(Model):
+    """OrbitGuard forecaster: LRP for the Pc value + gradient-boosted tier probabilities.
+
+    No regressor we tried beats LRP on ESA L (consistent with the 2019 competition), so pred_risk stays LRP.
+    The GBM learns P(final tier) from the full pre-cutoff history, which sharpens p_safe and lets the
+    auto-clear policy clear more events at the same Critical recall. Events seen in fit() get
+    out-of-fold probabilities, so θ tuned on train is not tuned on memorised predictions.
+    """
+    name = "OrbitGuard: LRP + GBM tier probabilities"
+
+    def __init__(self, folds: int = 5, seed: int = 7):
+        self.folds, self.seed = folds, seed
+        self.kw = dict(random_state=seed, learning_rate=0.03, max_leaf_nodes=15, min_samples_leaf=40,
+                       l2_regularization=2.0, max_iter=400)
+        self.clf = None
+        self.oof: pd.DataFrame | None = None
+
+    def fit(self, train_events):
+        from sklearn.ensemble import HistGradientBoostingClassifier
+        from sklearn.model_selection import StratifiedKFold, cross_val_predict
+        X = event_matrix(train_events)
+        y = pd.Categorical(train_events["final_tier"], categories=TIERS).codes
+        self.clf = HistGradientBoostingClassifier(**self.kw).fit(X, y)
+        cv = StratifiedKFold(self.folds, shuffle=True, random_state=self.seed)
+        oof = cross_val_predict(HistGradientBoostingClassifier(**self.kw), X, y, cv=cv, method="predict_proba")
+        self.oof = pd.DataFrame(oof, index=train_events["event_id"].to_numpy(), columns=TIERS)
+        self.tau_crit, self.tau_elev = self._tune_thresholds(oof, train_events["final_tier"].to_numpy())
+        return self
+
+    @staticmethod
+    def _prob_tiers(p: np.ndarray, tau_crit: float, tau_elev: float) -> np.ndarray:
+        return np.where(p[:, 2] >= tau_crit, CRITICAL, np.where(p[:, 1] + p[:, 2] >= tau_elev, ELEVATED, SAFE))
+
+    def _tune_thresholds(self, oof: np.ndarray, y: np.ndarray) -> tuple[float, float]:
+        """Forecast-tier rule F1/F2, tuned on out-of-fold train probabilities only.
+        Objective favours catching Critical (F2 weights recall 4x), then Elevated, then overall accuracy."""
+        def f2(t, c):
+            tp = ((t == c) & (y == c)).sum()
+            pr, rc = tp / max((t == c).sum(), 1), tp / max((y == c).sum(), 1)
+            return 5 * pr * rc / (4 * pr + rc) if pr + rc else 0.0
+        best = (-1.0, 0.5, 0.5)
+        for tc in np.arange(0.10, 0.70, 0.025):
+            for te in np.arange(0.20, 0.80, 0.05):
+                t = self._prob_tiers(oof, tc, te)
+                score = f2(t, CRITICAL) + 0.5 * f2(t, ELEVATED) + 0.25 * (t == y).mean()
+                if score > best[0]:
+                    best = (score, float(round(tc, 3)), float(round(te, 3)))
+        return best[1], best[2]
+
+    def forecast_tiers(self, pred, events):
+        """F1: P(Critical) >= tau_crit -> Critical; F2: P(Elevated or worse) >= tau_elev -> Elevated; else Safe."""
+        p = pred[["p_safe", "p_elevated", "p_critical"]].to_numpy()
+        return self._prob_tiers(p, self.tau_crit, self.tau_elev)
+
+    def predict(self, events):
+        probs = self.clf.predict_proba(event_matrix(events))
+        ids = events["event_id"].to_numpy()
+        seen = np.isin(ids, self.oof.index) if self.oof is not None else np.zeros(len(ids), bool)
+        if seen.any():
+            probs[seen] = self.oof.loc[ids[seen], TIERS].to_numpy()
+        risk = events["latest_risk"].to_numpy(float)
+        pred = np.where(risk < -6, LRP_CLIP, risk)
+        return _frame(events, pred, probs, events["volatile"].to_numpy(bool), self.name)
+
+
 def load_teammate() -> Model | None:
     """Plug-in slot. Prefers a Python package models/teammate/ (with predict(), optional fit()),
     else models/teammate_predictions.csv. Never modifies anything in models/teammate/."""
@@ -169,7 +252,7 @@ def validate_output(out: pd.DataFrame, events: pd.DataFrame, name: str, allow_mi
 
 
 def available_models() -> list[Model]:
-    models: list[Model] = [ConstantModel(), LatestRiskModel()]
+    models: list[Model] = [ConstantModel(), LatestRiskModel(), GBMTierForecaster()]
     tm = load_teammate()
     if tm is not None:
         models.append(tm)

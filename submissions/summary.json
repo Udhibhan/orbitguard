@@ -1,11 +1,17 @@
 {
-  "model": "Baseline B: Latest Risk (LRP)",
+  "model": "OrbitGuard: LRP + GBM tier probabilities",
   "n_events": 2167,
   "n_rows": 24484,
   "pred_tier_counts": {
-    "Safe": 1481,
-    "Elevated": 500,
+    "Safe": 1508,
+    "Elevated": 473,
     "Critical": 186
   },
-  "analyst_review": 739
+  "analyst_review": 739,
+  "row_model": "Pc Engine (GBM, physics features)",
+  "row_pred_tier_counts": {
+    "Safe": 15925,
+    "Elevated": 6345,
+    "Critical": 2214
+  }
 }

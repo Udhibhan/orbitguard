@@ -1,0 +1,143 @@
+{
+  "model": "Pc Engine (GBM, physics features)",
+  "val": {
+    "n_rows": 32585,
+    "n_events": 2603,
+    "tier_accuracy": 0.9824765996624214,
+    "per_tier": {
+      "Safe": {
+        "support": 23197,
+        "predicted": 23293,
+        "recall": 0.9909902142518429,
+        "precision": 0.9869059374060877
+      },
+      "Elevated": {
+        "support": 6987,
+        "predicted": 6864,
+        "recall": 0.9503363389151281,
+        "precision": 0.9673659673659674
+      },
+      "Critical": {
+        "support": 2401,
+        "predicted": 2428,
+        "recall": 0.9937526030820492,
+        "precision": 0.9827018121911038
+      }
+    },
+    "confusion": [
+      [
+        22988,
+        209,
+        0
+      ],
+      [
+        305,
+        6640,
+        42
+      ],
+      [
+        0,
+        15,
+        2386
+      ]
+    ],
+    "labels": [
+      "Safe",
+      "Elevated",
+      "Critical"
+    ],
+    "mae_log_pc_nonfloor": 3.0115022934360316,
+    "mae_log_pc_high_risk": 1.1255830518959988,
+    "physics_mae_log_pc_nonfloor": 16.100972636270022,
+    "high_risk_recall": 0.5283208020050125,
+    "high_risk_precision": 0.8432,
+    "high_risk_f2": 0.570964247020585,
+    "spearman": 0.7710132349332647
+  },
+  "test": {
+    "n_rows": 24484,
+    "n_events": 2167,
+    "tier_accuracy": 0.9746364973043621,
+    "per_tier": {
+      "Safe": {
+        "support": 15756,
+        "predicted": 15882,
+        "recall": 0.9869256156384869,
+        "precision": 0.9790958317592243
+      },
+      "Elevated": {
+        "support": 6501,
+        "predicted": 6386,
+        "recall": 0.9435471465928319,
+        "precision": 0.9605386783589102
+      },
+      "Critical": {
+        "support": 2227,
+        "predicted": 2216,
+        "recall": 0.9784463403682083,
+        "precision": 0.9833032490974729
+      }
+    },
+    "confusion": [
+      [
+        15550,
+        204,
+        2
+      ],
+      [
+        332,
+        6134,
+        35
+      ],
+      [
+        0,
+        48,
+        2179
+      ]
+    ],
+    "labels": [
+      "Safe",
+      "Elevated",
+      "Critical"
+    ],
+    "mae_log_pc_nonfloor": 2.663663384800293,
+    "mae_log_pc_high_risk": 0.8859958213734389,
+    "physics_mae_log_pc_nonfloor": 16.460574611784754,
+    "high_risk_recall": 0.5887220349371743,
+    "high_risk_precision": 0.9095643939393939,
+    "high_risk_f2": 0.6334080717488789,
+    "spearman": 0.8268272884100688
+  },
+  "feature_importance": {
+    "abs_r_over_sigma": 1.883668476224356,
+    "max_risk_estimate": 0.9034658034036265,
+    "d_over_sigma": 0.5082802748797239,
+    "relative_speed": 0.34544883636680446,
+    "dir_n": 0.25115828799670137,
+    "min_log_miss_sofar": 0.21496365854841004,
+    "log_sigma_comb": 0.20882709151347356,
+    "d_log_c_sigma_r": 0.17122061368303632,
+    "time_to_tca": 0.12795828546505117,
+    "first_log_miss": 0.10871617632951214,
+    "d_mre": 0.10866518337187792,
+    "dir_t": 0.1044686440823166,
+    "d_log_miss": 0.07649828540045345,
+    "pos_t": 0.07515894415912383,
+    "pos_r": 0.07274301287152518,
+    "cdm_index": 0.06107585352488076,
+    "prev_log_c_sigma_r": 0.058925156475365004,
+    "obj": 0.04488616325477324,
+    "dir_r": 0.039098418100093735,
+    "log_c_sigma_r": 0.037946908411092384,
+    "F10": 0.03766615777733007,
+    "log_t_sigma_r": 0.0304721816043223,
+    "pos_n": 0.02192830368925902,
+    "log_miss": 0.019775818935089173,
+    "prev_mre": 0.014495380279415215,
+    "AP": 0.006982905560020569,
+    "prev_log_miss": 0.005187366569761931,
+    "pc_max_log": 0.005127770450097824,
+    "pc_iso_log": 0.0047725530130859894,
+    "n_unknown_sigma": 0.0
+  }
+}

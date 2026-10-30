@@ -1,37 +1,62 @@
 # OrbitGuard: satellite collision-risk triage
 
-Airbus hackathon, Challenge #1. OrbitGuard helps a **conjunction assessment analyst** decide, about
-**2 days before closest approach (TCA)**, whether an event needs manoeuvre planning. It runs on the ESA Kelvins
-Collision Avoidance Challenge CDM data.
+Airbus hackathon, Challenge #1. OrbitGuard reads ESA Kelvins conjunction data messages (CDMs), estimates the
+collision probability of every message, forecasts each encounter's tier at closest approach (TCA) **2 days early**,
+and auto-clears what is provably safe so that analysts only see the dangerous ones.
 
-Rules and statistics make every decision; Claude only phrases briefings; the analyst decides.
+Rules make every tier decision, models supply the numbers, Claude only phrases briefings, and the analyst decides.
 
-## Run it (3 commands)
+## The website (`web/`)
+
+A static site with no build step (ES modules, three.js and d3 from a CDN), plus one optional serverless function
+(`web/api/brief.js`) for Claude-written briefings. Pages: Mission control (orbit hero, conjunction radar, top
+threats), Triage queue, Encounter (3D RTN geometry with CDM replay, Pc/miss timelines, decision trace,
+manoeuvre what-if, briefing, Act/Watch/Clear log), 24-hour warnings, Model lab, and Method & limits.
+
+**Run locally:** `python run.py serve`, then open http://localhost:8000. Briefings fall back to the deterministic
+template locally because `python -m http.server` can't run the function.
+
+**Deploy on Vercel:** import the GitHub repo, set **Root Directory = `web`**, Framework preset **Other**, and leave
+the build command empty. Optionally add the environment variable `ANTHROPIC_API_KEY` to turn on Claude briefings.
+No database is needed: all data is static JSON in `web/data/`, and analyst decisions are stored in the
+browser (export them as CSV from the triage page).
+
+## Rebuild the data and models
 
 Put `train_data.csv` and `test_data.csv` in `data/raw/`, then:
 
 ```bash
 pip install -r requirements.txt          # Python 3.10+
-python run.py all                        # build data, evaluate, Pc validation, test predictions, tests
-python run.py app                        # dashboard at http://localhost:8501
+python run.py all                        # data, evaluation, Pc Engine, test predictions, web export, tests
+python run.py serve                      # website at http://localhost:8000
+python run.py app                        # legacy Streamlit dashboard at http://localhost:8501
 ```
 
-`make data | eval | predict | test | app` do the same where `make` is available. Set `ANTHROPIC_API_KEY`
-for Claude-written briefings; without it every briefing uses the deterministic template.
+## Headline results
 
-## Headline results (validation: 1,659 held-out events, split by event_id)
+**Pc Engine (per-CDM Pc and tier, `orbitguard/pcnet.py`).** It is scored on all 24,484 test rows against their reported
+`risk`, which it never sees as an input.
 
-| Model | ESA L ↓ (95% CI) | MSE_HR | F2_HR | Critical recall | Auto-cleared @ Critical recall |
-|---|---|---|---|---|---|
-| Baseline A: constant -5 | 9.31 | 0.35 | 0.04 | 0.84 | 0% |
-| **Baseline B: Latest Risk (LRP)** | **0.56** (0.01–1.77) | 0.23 | 0.41 | 0.84 (0.95 incl. analyst review) | **45.3% @ 100%** |
-| Teammate model | plugs in via `models/CONTRACT.md` | | | | |
+| Metric | Test rows | Validation rows |
+|---|---|---|
+| Tier accuracy | **97.5%** | 98.2% |
+| Critical recall / precision | 97.8% / 98.3% | 99.4% / 98.3% |
+| Elevated recall / precision | 94.4% / 96.1% | 95.0% / 96.7% |
+| Pc error, orders of magnitude (physics formula alone) | **2.66** (16.5) | 3.01 (16.1) |
 
-- **Impact:** 45.3% of events (95% CI 42.7–47.7%) are auto-cleared with **0 of 110 Critical events cleared**
-  (8 Elevated cleared). The clearing threshold is tuned on the train split only and measured on validation.
-- LRP is the benchmark: only 12 of 97 teams beat it in ESA's 2019 competition. Our L of 0.56 is close to ESA's
-  published LRP score (~0.69 on their test set).
-- There are only 13 high-risk events in validation, so treat L as an indication, not a precise number.
+**Forecaster (tier at TCA from the history at T-2 days; 1,659 held-out events, split by event_id)**
+
+| Model | ESA L | Critical recall | Critical recall incl. analyst review | Auto-cleared @ 0 Critical cleared |
+|---|---|---|---|---|
+| Baseline A: constant -5 | 9.31 | 0.84 | 0.84 | 0% |
+| Baseline B: Latest Risk (LRP) | 0.56 | 0.84 | 0.95 | 45.3% |
+| **OrbitGuard: LRP + GBM tier probabilities** | 0.56 | **0.86** | **0.96** | **51.5%** (95% CI 49.0–53.8%) |
+
+- LRP is the benchmark that only 12 of 97 teams beat in ESA's 2019 competition. No regressor we trained improved its Pc value,
+  so OrbitGuard keeps LRP for Pc. Gradient-boosted tier probabilities (out-of-fold on train) drive the forecast tier
+  (F1: P(Critical) >= 15%, F2: P(Elevated or worse) >= 20%) and the auto-clear policy.
+- Submissions: `submissions/test_predictions_rows.csv` (Pc Engine, one row per test CDM),
+  `test_predictions_event.csv`, `test_submission_esa.csv`.
 
 ## How it works
 
@@ -40,8 +65,9 @@ for Claude-written briefings; without it every briefing uses the deterministic t
 | Load CDMs, **13-column whitelist** asserted | `orbitguard/data.py` | code |
 | Event features from CDMs **at or before 2 days to TCA** only; target = final CDM risk | `data.py` | code |
 | Tiers: Critical (Pc ≥ 1e-4 or miss < 1 km) > Elevated (Pc ≥ 1e-6 or miss ≤ 5 km) > Safe | `orbitguard/tiers.py` | **rules** |
-| Forecast final log10 Pc: baselines + teammate plug-in | `orbitguard/models.py` | model (numbers only) |
-| Forecast tier = rules(pred risk, latest miss) | `tiers.py` | **rules** |
+| Per-CDM Pc and tier probabilities (Pc Engine: hurdle GBM on physics features) | `orbitguard/pcnet.py` | model (numbers only) |
+| Forecast final log10 Pc + tier probabilities: baselines, GBM forecaster, teammate plug-in | `orbitguard/models.py` | model (numbers only) |
+| Forecast tier = rules(pred risk, latest miss), or rules F1/F2 on tier probabilities for the GBM forecaster | `tiers.py`, `models.py` | **rules** |
 | Volatility → Analyst review; auto-clear if p_safe ≥ θ | `evaluate.py`, `data.py` | **rules** |
 | Independent Pc approximation (cross-check) | `orbitguard/pc.py` | code |
 | Briefing: facts JSON → Claude (`claude-haiku-5-5`) → verifier → template fallback | `orbitguard/briefing.py` | LLM phrases only |

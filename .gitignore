@@ -5,3 +5,5 @@ data/raw/
 data/processed/
 data/briefings_cache/
 data/decisions.jsonl
+web/node_modules/
+.vercel/

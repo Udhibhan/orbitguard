@@ -177,6 +177,82 @@
           1.0
         ]
       }
+    },
+    "OrbitGuard: LRP + GBM tier probabilities": {
+      "esa": {
+        "L": 0.5599770413633643,
+        "mse_hr": 0.2290815169213763,
+        "f2": 0.40909090909090906,
+        "precision_hr": 0.15517241379310345,
+        "recall_hr": 0.6923076923076923,
+        "tp": 9,
+        "fp": 49,
+        "fn": 4
+      },
+      "tiers": {
+        "confusion": [
+          [
+            1178,
+            46,
+            4
+          ],
+          [
+            31,
+            256,
+            34
+          ],
+          [
+            0,
+            15,
+            95
+          ]
+        ],
+        "labels": [
+          "Safe",
+          "Elevated",
+          "Critical"
+        ],
+        "accuracy": 0.9216395418927065,
+        "critical_recall": 0.8636363636363636,
+        "critical_precision": 0.7142857142857143,
+        "critical_f2": 0.8289703315881327
+      },
+      "critical_recall_with_review": 0.9636363636363636,
+      "critical_silent_misses": 4,
+      "workload": {
+        "theta": 0.9501922247155862,
+        "n_events": 1659,
+        "n_cleared": 855,
+        "pct_cleared": 0.515370705244123,
+        "critical_recall": 1.0,
+        "critical_auto_cleared": 0,
+        "elevated_auto_cleared": 11,
+        "n_analyst_review": 555
+      },
+      "workload_train": {
+        "theta": 0.9501922247155862,
+        "n_events": 6634,
+        "n_cleared": 3377,
+        "pct_cleared": 0.5090443171540548,
+        "critical_recall": 0.9909297052154195,
+        "critical_auto_cleared": 4,
+        "elevated_auto_cleared": 40,
+        "n_analyst_review": 2217
+      },
+      "bootstrap": {
+        "L_ci95": [
+          0.01288036178857899,
+          1.7681149902004822
+        ],
+        "pct_cleared_ci95": [
+          0.49005424954792043,
+          0.5377034358047017
+        ],
+        "critical_recall_ci95": [
+          1.0,
+          1.0
+        ]
+      }
     }
   },
   "current_tier_persistence": {

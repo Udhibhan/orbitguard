@@ -167,7 +167,7 @@ def run() -> dict:
         p_val = model.predict(val).set_index("event_id").loc[val["event_id"]].reset_index()
         theta = tune_theta(p_tr.set_index("event_id").loc[train["event_id"]].reset_index(),
                            train["final_tier"].to_numpy())
-        ftier = classify_array(p_val["pred_risk"], val["latest_miss_distance"])
+        ftier = model.forecast_tiers(p_val, val)
         abst = p_val["abstain"].to_numpy(bool)
         crit = (val["final_tier"] == CRITICAL).to_numpy()
         silent_miss = int((crit & (ftier != CRITICAL) & ~abst).sum())
